@@ -23,9 +23,10 @@ const Chat = ({ conversation, setActiveChat }) => {
 
   const unreadCount = useMemo(() => {
     // only count messages that are not read and the message sender belongs to the other user
-    return conversation.messages.reduce((acc, message) =>
-      !message.isRead && message.senderId === otherUser.id ? acc + 1 : acc, 0);
-  }, [conversation, otherUser])
+    return conversation.messages.reduce(
+      (acc, message) =>
+        !message.isRead && message.senderId === otherUser.id ? acc + 1 : acc, 0);
+  }, [conversation, otherUser]);
 
   const handleClick = async (conversation) => {
     await setActiveChat(conversation, unreadCount);

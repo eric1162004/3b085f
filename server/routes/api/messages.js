@@ -2,6 +2,33 @@ const router = require("express").Router();
 const { Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
 
+// expects {senderId, conversationId} in body
+router.post("/clear-unreads", async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+    const { senderId, conversationId } = req.body;
+
+    const messages = await Message.findAll({
+      where: {
+        conversationId,
+        senderId,
+        isRead: false,
+      },
+    });
+
+    messages.forEach(async message => {
+      message.isRead = true;
+      await message.save();
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)
 router.post("/", async (req, res, next) => {
   try {

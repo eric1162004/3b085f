@@ -124,29 +124,43 @@ const Home = ({ user, logout }) => {
     [setConversations, conversations]
   );
 
-  const clearUnReads = useCallback((conversation, unreadCount) => {
-    if (unreadCount < 1) return;
+  const saveUnreads = async (body) => {
+    const { data } = await axios.post('/api/messages/clear-unreads', body);
+    return data;
+  };
 
+  const clearUnreads = useCallback(async (conversation) => {
     const conversationId = conversation.id;
+    const senderId = conversation.otherUser.id;
 
-    setConversations((prev) =>
-      prev.map((convo) => {
-        if (convo.id === conversationId) {
-          const convoCopy = {...convo};
-          convoCopy.messages.forEach((message) => {
-            if (!message.isRead) {
-              message.isRead = true;
-            }
-          });
-          return convoCopy;
-        }
-        return convo;
-      })
-    );
+    try {
+      const { success } = await saveUnreads({ conversationId, senderId });
+      if (!success) return;
+
+      // clear unreads on the frontend
+      setConversations((prev) =>
+        prev.map((convo) => {
+          if (convo.id === conversationId) {
+            const convoCopy = { ...convo };
+            convoCopy.messages.forEach((message) => {
+              if (!message.isRead) {
+                message.isRead = true;
+              }
+            });
+            return convoCopy;
+          }
+          return convo;
+        })
+      );
+    } catch (error) {
+      console.error(error);
+    }
   }, []);
 
-  const setActiveChat = (conversation, unreadCount) => {
-    clearUnReads(conversation, unreadCount)
+  const setActiveChat = async (conversation, unreadCount) => {
+    if (unreadCount > 0) {
+      await clearUnreads(conversation);
+    }
     setActiveConversation(conversation.otherUser.username);
   };
 
