@@ -181,9 +181,19 @@ const Home = ({ user, logout }) => {
   }, [user, history, isLoggedIn]);
 
   useEffect(() => {
+
+    const sortMessagesInASCOrder = (messages) => {
+      messages.sort((a,b) => {
+        var dateA = new Date(a.createdAt);
+        var dateB = new Date(b.createdAt);
+        return dateA - dateB;
+      })
+    }
+
     const fetchConversations = async () => {
       try {
         const { data } = await axios.get('/api/conversations');
+        data.forEach(datum => sortMessagesInASCOrder(datum.messages));
         setConversations(data);
       } catch (error) {
         console.error(error);
