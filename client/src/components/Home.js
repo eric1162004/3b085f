@@ -80,15 +80,14 @@ const Home = ({ user, logout }) => {
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
-      const updatedConversations = conversations.map((convo) => {
+      setConversations((prev) => prev.map((convo) => {
         if (convo.otherUser.id === recipientId) {
           convo.messages.push(message);
           convo.latestMessageText = message.text;
           convo.id = message.conversationId;
         }
         return convo;
-      });
-      setConversations(updatedConversations);
+      }));
     },
     [setConversations, conversations]
   );
@@ -108,14 +107,13 @@ const Home = ({ user, logout }) => {
         return;
       }
 
-      const updatedConversations = conversations.map((convo)=>{
+      setConversations((prev) => prev.map((convo) => {
         if (convo.id === message.conversationId) {
           convo.messages.push(message);
-          convo.latestMessageText = message.text;
+          convo.latestMessageText = message.text
         }
         return convo;
-      });
-      setConversations(updatedConversations);
+      }));
     },
     [setConversations, conversations]
   );
@@ -186,8 +184,8 @@ const Home = ({ user, logout }) => {
 
     const sortMessagesInASCOrder = (messages) => {
       messages.sort((a,b) => {
-        var dateA = new Date(a.createdAt);
-        var dateB = new Date(b.createdAt);
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
         return dateA - dateB;
       })
     }
@@ -195,7 +193,7 @@ const Home = ({ user, logout }) => {
     const fetchConversations = async () => {
       try {
         const { data } = await axios.get('/api/conversations');
-        data.forEach(datum => sortMessagesInASCOrder(datum.messages));
+        data.forEach(conversation => sortMessagesInASCOrder(conversation.messages));
         setConversations(data);
       } catch (error) {
         console.error(error);
