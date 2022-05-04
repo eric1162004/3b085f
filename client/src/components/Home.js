@@ -86,8 +86,9 @@ const Home = ({ user, logout }) => {
           convoCopy.messages.push(message);
           convoCopy.latestMessageText = message.text;
           convoCopy.id = message.conversationId;
+          return convoCopy
         }
-        return convoCopy;
+        return convo;
       }));
     },
     [setConversations, conversations]
@@ -110,9 +111,10 @@ const Home = ({ user, logout }) => {
 
       setConversations((prev) => prev.map((convo) => {
         if (convo.id === message.conversationId) {
-          const convoCopy = {...convo}
+          const convoCopy = { ...convo }
           convoCopy.messages.push(message);
           convoCopy.latestMessageText = message.text
+          return convoCopy
         }
         return convo;
       }));
