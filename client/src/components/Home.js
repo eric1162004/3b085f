@@ -124,8 +124,30 @@ const Home = ({ user, logout }) => {
     [setConversations, conversations]
   );
 
-  const setActiveChat = (username) => {
-    setActiveConversation(username);
+  const clearUnReads = useCallback((conversation, unreadCount) => {
+    if (unreadCount < 1) return;
+
+    const conversationId = conversation.id;
+
+    setConversations((prev) =>
+      prev.map((convo) => {
+        if (convo.id === conversationId) {
+          const convoCopy = {...convo};
+          convoCopy.messages.forEach((message) => {
+            if (!message.isRead) {
+              message.isRead = true;
+            }
+          });
+          return convoCopy;
+        }
+        return convo;
+      })
+    );
+  }, []);
+
+  const setActiveChat = (conversation, unreadCount) => {
+    clearUnReads(conversation, unreadCount)
+    setActiveConversation(conversation.otherUser.username);
   };
 
   const addOnlineUser = useCallback((id) => {
