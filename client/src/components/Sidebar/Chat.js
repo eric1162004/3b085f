@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box } from '@material-ui/core';
+import React, { useMemo } from 'react';
+import { Box, Chip } from '@material-ui/core';
 import { BadgeAvatar, ChatContent } from '../Sidebar';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -25,6 +25,12 @@ const Chat = ({ conversation, setActiveChat }) => {
     await setActiveChat(conversation.otherUser.username);
   };
 
+  const unreadCount = useMemo(() => {
+    // only count messages that are not read and the message sender belongs to the other user
+    return conversation.messages.reduce((acc, message) =>
+        !message.isRead && message.senderId === otherUser.id ? acc + 1 : acc, 0)
+  }, [conversation, otherUser])
+
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>
       <BadgeAvatar
@@ -34,6 +40,7 @@ const Chat = ({ conversation, setActiveChat }) => {
         sidebar={true}
       />
       <ChatContent conversation={conversation} />
+      {unreadCount > 0 && <Chip label={unreadCount} color="primary" size="small" />}
     </Box>
   );
 };

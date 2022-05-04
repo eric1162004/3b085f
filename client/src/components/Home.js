@@ -91,6 +91,7 @@ const Home = ({ user, logout }) => {
         return convo;
       }));
     },
+    // eslint-disable-next-line
     [setConversations, conversations]
   );
 
@@ -119,6 +120,7 @@ const Home = ({ user, logout }) => {
         return convo;
       }));
     },
+    // eslint-disable-next-line
     [setConversations, conversations]
   );
 
