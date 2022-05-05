@@ -3,7 +3,7 @@ const { Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
 
 // expects {senderId, conversationId} in body
-router.post("/clear-unreads", async (req, res, next) => {
+router.put("/clear-unreads", async (req, res, next) => {
   try {
     if (!req.user) {
       return res.sendStatus(401);
@@ -21,7 +21,7 @@ router.post("/clear-unreads", async (req, res, next) => {
       }
     );
 
-    res.json({ success: true });
+    res.status(204).end();
   } catch (error) {
     next(error);
   }

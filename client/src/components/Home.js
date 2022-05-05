@@ -125,7 +125,7 @@ const Home = ({ user, logout }) => {
   );
 
   const saveUnreads = async (body) => {
-    const { data } = await axios.post('/api/messages/clear-unreads', body);
+    const { data } = await axios.put('/api/messages/clear-unreads', body);
     return data;
   };
 
@@ -134,8 +134,7 @@ const Home = ({ user, logout }) => {
     const senderId = conversation.otherUser.id;
 
     try {
-      const { success } = await saveUnreads({ conversationId, senderId });
-      if (!success) return;
+      await saveUnreads({ conversationId, senderId });
 
       // clear unreads on the frontend
       setConversations((prev) =>
