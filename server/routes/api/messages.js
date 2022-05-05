@@ -10,18 +10,16 @@ router.post("/clear-unreads", async (req, res, next) => {
     }
     const { senderId, conversationId } = req.body;
 
-    const messages = await Message.findAll({
-      where: {
-        conversationId,
-        senderId,
-        isRead: false,
-      },
-    });
-
-    messages.forEach(async message => {
-      message.isRead = true;
-      await message.save();
-    });
+    await Message.update(
+      { isRead: true },
+      {
+        where: {
+          conversationId,
+          senderId,
+          isRead: false,
+        },
+      }
+    );
 
     res.json({ success: true });
   } catch (error) {
