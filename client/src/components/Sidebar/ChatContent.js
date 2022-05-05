@@ -18,9 +18,12 @@ const useStyles = makeStyles((theme) => ({
     color: "#9CADC8",
     letterSpacing: -0.17,
   },
+  textBold: {
+    fontWeight: "bold",
+  }
 }));
 
-const ChatContent = ({ conversation }) => {
+const ChatContent = ({ conversation, unreadCount }) => {
   const classes = useStyles();
 
   const { otherUser } = conversation;
@@ -32,7 +35,7 @@ const ChatContent = ({ conversation }) => {
         <Typography className={classes.username}>
           {otherUser.username}
         </Typography>
-        <Typography className={classes.previewText}>
+        <Typography className={`${latestMessageText} ${unreadCount > 0 && classes.textBold}`}>
           {latestMessageText}
         </Typography>
       </Box>

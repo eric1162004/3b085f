@@ -40,7 +40,7 @@ const Chat = ({ conversation, setActiveChat }) => {
         online={otherUser.online}
         sidebar={true}
       />
-      <ChatContent conversation={conversation} />
+      <ChatContent conversation={conversation} unreadCount={unreadCount} />
       {unreadCount > 0 && <Chip label={unreadCount} color="primary" size="small" />}
     </Box>
   );
