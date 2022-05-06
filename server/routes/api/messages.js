@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { Op } = require("sequelize");
 const { Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
 
@@ -10,6 +11,17 @@ router.put("/save-reads", async (req, res, next) => {
     }
     
     const { senderId, conversationId } = req.body;
+
+    // forbid users who are not in the conversation
+    const conversation = await Conversation.findOne({
+      where: {
+        id: conversationId,
+        [Op.or]: [{ user1Id: req.user.id }, { user2Id: req.user.id }],
+      },
+    });
+    if (!conversation) {
+      return res.sendStatus(403);
+    }
 
     await Message.update(
       { isRead: true },
