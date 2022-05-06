@@ -11,6 +11,7 @@ const { app, sessionStore } = require("../app");
 const http = require("http");
 const db = require("../db");
 const onlineUsers = require("../onlineUsers");
+const { Socket } = require("net");
 
 /**
  * Get port from environment and store in Express.
@@ -45,6 +46,15 @@ io.on("connection", (socket) => {
       message: data.message,
       sender: data.sender,
     });
+  });
+
+  socket.on("message-read", data => {
+    if (onlineUsers.includes(data.senderId)) {
+      socket.broadcast.emit("message-read", {
+        senderId: data.senderId,
+        conversationId: data.conversationId,
+      });
+    }
   });
 
   socket.on("logout", (id) => {

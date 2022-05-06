@@ -3,11 +3,12 @@ const { Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
 
 // expects {senderId, conversationId} in body
-router.put("/clear-unreads", async (req, res, next) => {
+router.put("/save-reads", async (req, res, next) => {
   try {
     if (!req.user) {
       return res.sendStatus(401);
     }
+    
     const { senderId, conversationId } = req.body;
 
     await Message.update(
