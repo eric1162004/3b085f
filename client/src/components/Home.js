@@ -78,6 +78,53 @@ const Home = ({ user, logout }) => {
     }
   };
 
+  const saveReads = async (body) => {
+    const { data } = await axios.put('/api/messages/save-reads', body);
+    return data;
+  };
+
+  const updateReadsInConversations = useCallback(
+    ({ conversationId }) => {
+      setConversations((prev) =>
+        prev.map((convo) => {
+          if (convo.id === conversationId) {
+            const convoCopy = { ...convo };
+            convoCopy.messages.forEach((message) => {
+              if (!message.isRead) {
+                message.isRead = true;
+              }
+            });
+            return convoCopy;
+          }
+          return convo;
+        })
+      );
+    },
+    [conversations, setConversations]
+  );
+
+  const clearUnreads = useCallback(
+    async (conversation) => {
+      const conversationId = conversation.id;
+      const senderId = conversation.otherUser.id;
+
+      try {
+        await saveReads({ conversationId, senderId });
+
+        // let the sender knows message has been read
+        socket.emit('message-read', { senderId, conversationId });
+
+        // setConversation() is handled by addMessageToConversation()
+        if (activeConversation === conversation.otherUser.username) return;
+
+        updateReadsInConversations({conversationId});
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [activeConversation]
+  );
+
   const addNewConvo = useCallback(
     (recipientId, message) => {
       setConversations((prev) => prev.map((convo) => {
@@ -91,6 +138,7 @@ const Home = ({ user, logout }) => {
         return convo;
       }));
     },
+    // eslint-disable-next-line
     [setConversations, conversations]
   );
 
@@ -109,21 +157,32 @@ const Home = ({ user, logout }) => {
         return;
       }
 
-      setConversations((prev) => prev.map((convo) => {
-        if (convo.id === message.conversationId) {
-          const convoCopy = { ...convo }
-          convoCopy.messages.push(message);
-          convoCopy.latestMessageText = message.text
-          return convoCopy
-        }
-        return convo;
-      }));
+      setConversations((prev) =>
+        prev.map((convo) => {
+          if (convo.id === message.conversationId) {
+            const convoCopy = { ...convo };
+            // Clear unread message if it's sent to the active conversation
+            if (activeConversation === convoCopy.otherUser.username && user.id !== message.senderId) {
+              message.isRead = true;
+              clearUnreads(convoCopy);
+            }
+            convoCopy.messages.push(message);
+            convoCopy.latestMessageText = message.text;
+            return convoCopy;
+          }
+          return convo;
+        })
+      );
     },
-    [setConversations, conversations]
+    // eslint-disable-next-line
+    [setConversations, activeConversation]
   );
 
-  const setActiveChat = (username) => {
-    setActiveConversation(username);
+  const setActiveChat = async (conversation, unreadCount) => {
+    if (unreadCount > 0) {
+      await clearUnreads(conversation);
+    }
+    setActiveConversation(conversation.otherUser.username);
   };
 
   const addOnlineUser = useCallback((id) => {
@@ -161,6 +220,7 @@ const Home = ({ user, logout }) => {
     socket.on('add-online-user', addOnlineUser);
     socket.on('remove-offline-user', removeOfflineUser);
     socket.on('new-message', addMessageToConversation);
+    socket.on('message-read', updateReadsInConversations);
 
     return () => {
       // before the component is destroyed
@@ -168,8 +228,15 @@ const Home = ({ user, logout }) => {
       socket.off('add-online-user', addOnlineUser);
       socket.off('remove-offline-user', removeOfflineUser);
       socket.off('new-message', addMessageToConversation);
+      socket.off('message-read', updateReadsInConversations);
     };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
+  }, [
+    addMessageToConversation,
+    addOnlineUser,
+    removeOfflineUser,
+    updateReadsInConversations,
+    socket,
+  ]);
 
   useEffect(() => {
     // when fetching, prevent redirect
@@ -185,7 +252,6 @@ const Home = ({ user, logout }) => {
   }, [user, history, isLoggedIn]);
 
   useEffect(() => {
-
     const sortMessagesInASCOrder = (messages) => {
       messages.sort((a,b) => {
         const dateA = new Date(a.createdAt);
